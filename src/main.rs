@@ -6,6 +6,13 @@ use aes_gcm::{
     Aes256Gcm, Key // Or `Aes128Gcm`
 };
 
+use ed25519_dalek::Signature;
+use ed25519_dalek::SigningKey;
+use ed25519_dalek::Signer;
+
+use ed25519_dalek::Verifier;
+
+
 fn main() {
 
 
@@ -79,6 +86,34 @@ fn main() {
     println!("Doit correspondre à : {:?}", b"plaintext message");
 
     assert_eq!(&plaintext, b"plaintext message");
+
+
+    println!("\n\n\n\n");
+    println!("Signature :");
+
+    
+    let mut csprng = OsRng;
+    let signing_key: SigningKey = SigningKey::generate(&mut csprng);
+
+    println!("singing key {:?}",signing_key.as_bytes());
+
+    let message: &[u8] = b"This is a test of the tsunami alert system.";
+
+    println!("Message : {:?}",message);
+
+    let signature: Signature = signing_key.sign(message);
+
+    println!("Signature : {:?}",signature.to_bytes());
+
+
+    let verification = signing_key.verify(message, &signature).is_ok();
+
+    println!("Verification : {verification}");
+
+
+    
+
+
 
 }
 
