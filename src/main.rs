@@ -6,12 +6,10 @@ use aes_gcm::{
     Aes256Gcm, Key // Or `Aes128Gcm`
 };
 
-use ed25519_dalek::Signature;
-use ed25519_dalek::SigningKey;
-use ed25519_dalek::Signer;
+use crypto_mob::hash;
 
-use ed25519_dalek::Verifier;
-use ed25519_dalek::VerifyingKey;
+//use ed25519_dalek::{Signature, SigningKey, Signer, Verifier, VerifyingKey}
+
 
 
 fn main() {
@@ -88,7 +86,52 @@ fn main() {
 
     assert_eq!(&plaintext, b"plaintext message");
 
+    
+    println!("\n\n\nScalar :");
+    let alice_sec_scalar = alice_sec.get_scalar();    
+    println!("alice_sec_scalar = {:?}",alice_sec_scalar.to_bytes());
+    let bob_sec_scalar =bob_sec.get_scalar();
+    println!("bob_sec_scalar = {:?}",bob_sec_scalar.to_bytes());
 
+    let alice_pub_scalar = alice_pub.get_scalar();
+    println!("\n\nalice_pub_scalar = {:?}",alice_pub_scalar.to_bytes());
+    let bob_pub_scalar = bob_pub.get_scalar();
+    println!("bob_pub_scalar = {:?}",bob_pub_scalar.to_bytes());
+
+    let secret_scalar = alice_shared_sec.get_scalar();
+    println!("\n\nsecret_shared_scalar = {:?}",secret_scalar.to_bytes());
+
+
+    let all_data: &[u8] = b"To really appreciate architecture, you may even need to commit a murder."
+    let result = hash(all_data);
+    println!("Hash de dall_data : {:x}",result.to_bytes());
+
+
+
+}
+
+    // println!("Starting key exchange!");
+    // let alice_sec = EphemeralSecret::random_from_rng(OsRng);
+    // let alice_pub = PublicKey::from(&alice_sec);
+
+    // println!("Alice public key : {:?}", alice_pub.as_bytes());
+
+    // let bob_sec = EphemeralSecret::random_from_rng(OsRng);
+    // let bob_pub = PublicKey::from(&bob_sec);
+
+    // println!("Bob public key : {:?}", bob_pub.as_bytes());
+
+    // let alice_shared_sec = alice_sec.diffie_hellman(&bob_pub);
+    // let bob_shared_sec = bob_sec.diffie_hellman(&alice_pub);
+
+    // let shared_key = alice_shared_sec.as_byte();
+
+    // assert_eq!(alice_shared_sec.as_byte(), bob_shared_sec.as_byte());
+    // println!("Shared secret is the same : {:?}", shared_key);
+
+
+
+    /*
     println!("\n\n\n\n");
     println!("Signature :");
 
@@ -120,26 +163,4 @@ fn main() {
     println!("Verification avec verifyin_key : {verification2}");
 
     
-
-
-
-}
-
-    // println!("Starting key exchange!");
-    // let alice_sec = EphemeralSecret::random_from_rng(OsRng);
-    // let alice_pub = PublicKey::from(&alice_sec);
-
-    // println!("Alice public key : {:?}", alice_pub.as_bytes());
-
-    // let bob_sec = EphemeralSecret::random_from_rng(OsRng);
-    // let bob_pub = PublicKey::from(&bob_sec);
-
-    // println!("Bob public key : {:?}", bob_pub.as_bytes());
-
-    // let alice_shared_sec = alice_sec.diffie_hellman(&bob_pub);
-    // let bob_shared_sec = bob_sec.diffie_hellman(&alice_pub);
-
-    // let shared_key = alice_shared_sec.as_byte();
-
-    // assert_eq!(alice_shared_sec.as_byte(), bob_shared_sec.as_byte());
-    // println!("Shared secret is the same : {:?}", shared_key);
+*/
