@@ -9,11 +9,7 @@ use aes_gcm::{
 type CipherType = AesGcm<Aes256, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
 type NonceType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
 
-use crypto_mob::hash;
-
-//use ed25519_dalek::{Signature, SigningKey, Signer, Verifier, VerifyingKey}
-
-
+use sha2::{Sha256,Digest};
 
 fn main() {
     println!("Starting key exchange!");
@@ -49,19 +45,41 @@ fn main() {
     println!("\n\n\nScalar :");
     let alice_sec_scalar = alice_sec.get_scalar();    
     println!("alice_sec_scalar = {:?}",alice_sec_scalar.to_bytes());
-    let bob_sec_scalar =bob_sec.get_scalar();
+    let bob_sec_scalar = bob_sec.get_scalar();
     println!("bob_sec_scalar = {:?}",bob_sec_scalar.to_bytes());
     
-    println!("\n\nsecret_shared_scalar = {:?}",secret_scalar.to_bytes());
-    let message: &[u8] = b"This is a test of the tsunami alert system.";
+    let secret_scalar = bob_shared_sec.get_scalar();
+    println!("\nsecret_scalar = {:?}",secret_scalar.to_bytes());
 
-    println!("Message : {:?}",message);
+    let addition_scalar = secret_scalar + bob_sec_scalar;
+    println!("Addition scalar (secret_scalar + bob_sec_scalar) : {:?}",addition_scalar.to_bytes());
+
+    let message: &[u8] = b"This is a test of the tsunami alert system.";
+    println!("\n\nMessage : {:?}",message);
 
     println!("\n\nHashing :");
-    let all_data: &[u8] = b"To really appreciate architecture, you may even need to commit a murder."
-    let result = hash(all_data);
-    println!("Hash de dall_data : {:x}",result.to_bytes());
+    let data: [u8; 32] = [
+        // Ajoutez ici vos données
+        // Exemple avec des données bidon
+        0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x77, 0x6F,
+        0x72, 0x6C, 0x64, 0x21, 0x21, 0x21, 0x21, 0x21,
+        0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21,
+        0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21,
+    ];
 
+    // Créez un objet Sha256
+    let mut hasher = Sha256::new();
+
+    // Mettez à jour le hachoir avec les données
+    hasher.update(&data);
+
+    // Finalisez le hachage et obtenez le résultat
+    let result = hasher.finalize();
+
+    // Affichez la valeur du hachage en format hexadécimal
+    println!("Hash SHA-256: {:x}", result);
+
+    println!("\n\n");
 }
 
 
@@ -103,59 +121,5 @@ pub fn decrypt(cipher : &CipherType, nonce : NonceType, ciphertext : Vec<u8>) ->
             std::process::exit(1);
         }
     };
+    plaintext
 }
-
-    // println!("Starting key exchange!");
-    // let alice_sec = EphemeralSecret::random_from_rng(OsRng);
-    // let alice_pub = PublicKey::from(&alice_sec);
-
-    // println!("Alice public key : {:?}", alice_pub.as_bytes());
-
-    // let bob_sec = EphemeralSecret::random_from_rng(OsRng);
-    // let bob_pub = PublicKey::from(&bob_sec);
-
-    // println!("Bob public key : {:?}", bob_pub.as_bytes());
-
-    // let alice_shared_sec = alice_sec.diffie_hellman(&bob_pub);
-    // let bob_shared_sec = bob_sec.diffie_hellman(&alice_pub);
-
-    // let shared_key = alice_shared_sec.as_byte();
-
-    // assert_eq!(alice_shared_sec.as_byte(), bob_shared_sec.as_byte());
-    // println!("Shared secret is the same : {:?}", shared_key);
-
-
-
-    /*
-    println!("\n\n\n\n");
-    println!("Signature :");
-
-    
-    let mut csprng = OsRng;
-    let signing_key: SigningKey = SigningKey::generate(&mut csprng);
-
-    println!("signing key {:?}",signing_key.as_bytes());
-
-    let message: &[u8] = b"This is a test of the tsunami alert system.";
-
-    println!("Message : {:?}",message);
-
-    let signature: Signature = signing_key.sign(message);
-
-    println!("Signature : {:?}",signature.to_bytes());
-
-    let verifying_key: VerifyingKey = signing_key.verifying_key();
-
-    println!("Verifying key : {:?}",verifying_key);
-
-    let verification = signing_key.verify(message, &signature).is_ok();
-
-    println!("Verification avec signing_key: {verification}");
-
-
-    let verification2 = verifying_key.verify(message, &signature).is_ok();
-
-    println!("Verification avec verifyin_key : {verification2}");
-
-    
-*/

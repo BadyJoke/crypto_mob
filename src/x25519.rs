@@ -4,8 +4,6 @@ use rand_core::{RngCore, CryptoRng};
 pub struct PublicKey(pub(crate) MontgomeryPoint);
 
 use curve25519_dalek::edwards::CompressedEdwardsY;
-use sha2::Sha256;
-use sha2::Digest;
 
 impl PublicKey {
     pub fn as_bytes(&self) -> &[u8; 32] {
@@ -77,13 +75,4 @@ impl EphemeralSecret {
         let secret_scalar: Scalar = Scalar::from_bytes_mod_order(secret_tab);
         secret_scalar
     }
-}
-
-
-pub fn hash(tab: &[u8]) -> Scalar {
-    let mut hasher = Sha256::new();
-    hasher.update(tab);
-    let result = hasher.finalize();
-    let s = Scalar::from_hash(result);
-    return s;
 }
