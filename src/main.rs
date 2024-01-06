@@ -10,6 +10,7 @@ type CipherType = AesGcm<Aes256, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
 type NonceType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
 
 use sha2::{Sha256,Digest};
+use curve25519_dalek::scalar::Scalar;
 
 fn main() {
     println!("Starting key exchange!");
@@ -58,26 +59,30 @@ fn main() {
     println!("\n\nMessage : {:?}",message);
 
     println!("\n\nHashing :");
-    let data: [u8; 32] = [
-        // Ajoutez ici vos données
-        // Exemple avec des données bidon
-        0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x77, 0x6F,
-        0x72, 0x6C, 0x64, 0x21, 0x21, 0x21, 0x21, 0x21,
-        0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21,
-        0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21,
-    ];
-
     // Créez un objet Sha256
     let mut hasher = Sha256::new();
-
     // Mettez à jour le hachoir avec les données
-    hasher.update(&data);
-
+    hasher.update(&message);
     // Finalisez le hachage et obtenez le résultat
     let result = hasher.finalize();
 
+    
     // Affichez la valeur du hachage en format hexadécimal
-    println!("Hash SHA-256: {:x}", result);
+    println!("Hash SHA-256 generic-array hex : {:x}", result);
+    println!("Hash SHA-256 generic-array tab : {:?}", result);
+
+    let bytes: [u8; 32] = result.into();
+    println!("bytes : {:?}",bytes);
+    let scalar_result = Scalar::from_bytes_mod_order(bytes);
+
+
+    println!("Hash SHA-256 scalar tab : {:?}",scalar_result.to_bytes());
+    println!("L'affichage est différent, mais c'est normal : c'est la conversion en Scalar qui modifie comment le tableau est affiché");
+    //fonctionne pas car {:x} pas prit en compte pour le type scalar
+    //println!("Hash SHA-256 scalar hex : {:x}",scalar_result.to_bytes());
+
+    println!("\n\n");
+    
 
     println!("\n\n");
 }
