@@ -37,7 +37,7 @@ impl SharedSecret {
     }
 
     pub fn get_scalar(&self) -> Scalar {
-        let secret_tab = self.as_byte().clone(); // Ou utilisez `self.as_byte().clone()` pour cloner explicitement
+        let secret_tab = self.as_byte().clone(); 
         let secret_scalar: Scalar = Scalar::from_bytes_mod_order(secret_tab);
         secret_scalar
     }
@@ -66,13 +66,14 @@ impl EphemeralSecret {
         EphemeralSecret(tab)
     }
 
-    pub fn to_tab(self) -> [u8; 32] {
+    pub fn to_tab(&self) -> [u8; 32] {
         self.0
     }
 
-    pub fn get_scalar(self) -> Scalar {
+    pub fn get_scalar(&self) -> Scalar {
         let secret_tab = self.to_tab();
         let secret_scalar: Scalar = Scalar::from_bytes_mod_order(secret_tab);
         secret_scalar
     }
+
 }
