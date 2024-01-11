@@ -34,14 +34,14 @@ fn main() {
     println!("\nScalar :");
     let alice_sec_scalar = alice_sec.get_scalar();    
     println!("alice_sec_scalar.to_bytes() = {:?}",alice_sec_scalar.to_bytes());
-    let alice_pub_scalar = alice_pub.get_scalar();
+    let alice_pub_scalar = alice_pub.get_scalar(); //X
     println!("alice_pub_scalar.to_bytes() = {:?}",alice_pub_scalar.to_bytes());
 
     println!("");
 
     let bob_sec_scalar = bob_sec.get_scalar();
     println!("bob_sec_scalar.to_bytes() = {:?}",bob_sec_scalar.to_bytes());
-    let bob_pub_scalar = bob_pub.get_scalar();
+    let bob_pub_scalar = bob_pub.get_scalar(); //Y
     println!("bob_pub_scalar.to_bytes() = {:?}",bob_pub_scalar.to_bytes());
 
     println!("");
@@ -105,18 +105,12 @@ fn main() {
     //println!("Hash SHA-256 scalar hex : {:x}",scalar_result.to_bytes());
 
 
-
-
-
-
-
-
     println!("\n\n\n\nTest signature :\n");
 
     //private_singing_key est r
     let private_signing_key = EphemeralSecret::random_from_rng(OsRng);
     println!("(r) private_signing_key : {:?}",private_signing_key.to_tab());
-    let private_signing_key_scalar = private_signing_key.get_scalar();
+    let private_signing_key_scalar = private_signing_key.get_scalar(); //r
     println!("private_signing_key_scalar = {:?}",private_signing_key_scalar.to_bytes());
 
     println!("");
@@ -124,7 +118,7 @@ fn main() {
     //public_signing_key est R
     let public_signing_key = PublicKey::from(&private_signing_key);
     println!("(R) public_signing_key : {:?}",public_signing_key.as_bytes());
-    let public_signing_key_scalar = public_signing_key.get_scalar();
+    let public_signing_key_scalar = public_signing_key.get_scalar(); //R
     println!("public_signing_key_scalar = {:?}",public_signing_key_scalar.to_bytes());
 
     println!("");
@@ -143,7 +137,7 @@ fn main() {
     println!("g_cooreds : {:?}",g_coords);
 
     //on créé le scalar g_coords_scalar à partir du tableau g_coords
-    let g_coords_scalar = Scalar::from_bytes_mod_order(g_coords);
+    let g_coords_scalar = Scalar::from_bytes_mod_order(g_coords); //g
     println!("g_coords_scalar = {:?}", g_coords_scalar.as_bytes());
 
 
@@ -206,7 +200,7 @@ fn main() {
 
     println!("\nConcaténation des tableau pour le second calcul de hash : {:?}", gros_tableau);
 
-    println!("\nCalcul de H(R'|g|b.pk|M");
+    println!("\nCalcul de H(R'|g|b.pk|M)");
 
     let mut hasher3 = Sha256::new();
     hasher3.update(&gros_tableau);
