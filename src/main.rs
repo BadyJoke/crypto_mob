@@ -123,10 +123,18 @@ fn main() {
 
     println!("");
 
+    let second_bob_sec = EphemeralSecret::random_from_rng(OsRng);
+    println!("bob_sec.to_tab() : {:?}",second_bob_sec.to_tab());
+    let second_bob_pub = PublicKey::from(&second_bob_sec);
+    println!("bob_pub.as_bytes(): {:?}", second_bob_pub.as_bytes());
+    let second_bob_pub_scalar = second_bob_pub.get_scalar();
+
+    println!("");
 
     let public_signing_key_tab = *(public_signing_key.as_bytes());
     let alice_pub_tab = *(alice_pub.as_bytes());
     let bob_pub_tab = *(bob_pub.as_bytes());
+    let second_bob_pub_tab = *(second_bob_pub.as_bytes());
 
 
     //g est le groupe générateur, g_coords est le groupe générateur mit dans un tableau u8; 32
@@ -145,14 +153,15 @@ fn main() {
 
     //calcul de tous les tableaux concaténés
 
-    //conversion en un tableau [u8; 128]
-    let mut result: [u8; 128] = [0; 128];
+    //conversion en un tableau [u8; 160]
+    let mut result: [u8; 160] = [0; 160];
     result[0..32].copy_from_slice(&public_signing_key_scalar.to_bytes());
     result[32..64].copy_from_slice(&g_coords);
-    result[64..96].copy_from_slice(&bob_pub_tab);
+    result[64..96].copy_from_slice(&second_bob_pub_tab);
     result[96..128].copy_from_slice(&alice_pub_tab);
+    result[128..160].copy_from_slice(&bob_pub_tab);
 
-    println!("Concaténation des tableaux : public_signing_key_scalar.to_bytes(), g_coords, bob_pub_tab, alice_pub_tab \n {:?}", result);
+    println!("Concaténation des tableaux : public_signing_key_scalar.to_bytes(), g_coords, second_bob_pub_tab, M(alice_pub_tab, bob_pub_tab) \n {:?}", result);
 
 
 
@@ -174,12 +183,12 @@ fn main() {
 
 
     println!("\n\nCalcul de z :");
-    let z = private_signing_key_scalar + c*bob_pub_scalar;
+    let z = private_signing_key_scalar + c*second_bob_pub_scalar;
     println!("z = {:?}",z.to_bytes());
 
     println!("\n\nTransfert de c et de z");
 
-    let big_r_prime_scalar = z*g_coords_scalar - c*bob_pub_scalar;
+    let big_r_prime_scalar = z*g_coords_scalar - c*second_bob_pub_scalar;
 
     println!("--------------------------------------------------------------------------------");
     println!("big_r_prime_scalar(R') doit être égal à public_signing_key_scalar (R) !\n");
@@ -191,12 +200,13 @@ fn main() {
 
     //calcul de H(R'|g|b.pk|M)
 
-    let mut gros_tableau: [u8; 128] = [0; 128];
+    let mut gros_tableau: [u8; 160] = [0; 160];
 
     gros_tableau[0..32].copy_from_slice(&big_r_prime_scalar.to_bytes());
     gros_tableau[32..64].copy_from_slice(&g_coords);
-    gros_tableau[64..96].copy_from_slice(&bob_pub_tab);
+    gros_tableau[64..96].copy_from_slice(&second_bob_pub_tab);
     gros_tableau[96..128].copy_from_slice(&alice_pub_tab);
+    gros_tableau[128..160].copy_from_slice(&bob_pub_tab);
 
     println!("\nConcaténation des tableau pour le second calcul de hash : {:?}", gros_tableau);
 
