@@ -160,7 +160,7 @@ fn hash_tab_get_scalar(
     grand_r_prime_tab: &[u8; 32],
     g_rab: &[u8; 32],
     bob_pk_tab: &[u8; 32],
-    other_tab: &[u8],
+    message: &[u8],
 ) -> Scalar{
     // Créer un vecteur pour contenir le résultat
     let mut result: Vec<u8> = Vec::new();
@@ -169,7 +169,7 @@ fn hash_tab_get_scalar(
     result.extend_from_slice(grand_r_prime_tab);
     result.extend_from_slice(g_rab);
     result.extend_from_slice(bob_pk_tab);
-    result.extend_from_slice(other_tab);
+    result.extend_from_slice(message);
 
     let mut hasher = Sha256::new();
     hasher.update(&result);
