@@ -15,19 +15,17 @@ use curve25519_dalek::scalar::Scalar;
 use curve25519_dalek::constants::ED25519_BASEPOINT_POINT;
 
 fn main() {
-    println!("\nStarting key exchange!\n");
+    println!("\nCréation des clés publiques et privés de Alice et Bob\n");
 
-    let alice_sec = EphemeralSecret::random_from_rng(OsRng);
+    let (alice_sec, alice_pub) = generate_ephemeral_keypair();
     println!("alice_sec.to_tab() : {:?}",alice_sec.to_tab());
-    let alice_pub = PublicKey::from(&alice_sec);
-    println!("alice_pub.as_bytes() : {:?}", alice_pub.as_bytes());
+    println!("alice_pub.as_bytes() : {:?}\n", alice_pub.as_bytes());
 
     println!("");
 
-    let bob_sec = EphemeralSecret::random_from_rng(OsRng);
+    let (bob_sec, bob_pub) = generate_ephemeral_keypair();
     println!("bob_sec.to_tab() : {:?}",bob_sec.to_tab());
-    let bob_pub = PublicKey::from(&bob_sec);
-    println!("bob_pub.as_bytes(): {:?}", bob_pub.as_bytes());
+    println!("bob_pub.as_bytes(): {:?}\n", bob_pub.as_bytes());
 
     println!("");
 
@@ -44,7 +42,7 @@ fn main() {
     let bob_pub_scalar = bob_pub.get_scalar(); //Y
     println!("bob_pub_scalar.to_bytes() = {:?}",bob_pub_scalar.to_bytes());
 
-    println!("");
+    println!("\nEchange de clé : \n");
 
     let alice_shared_sec = alice_sec.diffie_hellman(&bob_pub);
     let bob_shared_sec = bob_sec.diffie_hellman(&alice_pub);
@@ -68,175 +66,74 @@ fn main() {
     println!("Doit correspondre à : {:?}", b"plaintext message");
     assert_eq!(&plaintext, b"plaintext message");
 
-    println!("\n\n--------------------------------Hashing test-------------------------------------------");
-    let message: &[u8] = b"This is a test of the tsunami alert system.";
-    println!("\n\nMessage : {:?}",message);
 
-    println!("\n\nHashing :");
-    // Créez un objet Sha256
-    let mut hasher = Sha256::new();
-    // Mettez à jour le hachoir avec les données
-    hasher.update(&message);
-    // Finalisez le hachage et obtenez le résultat
-    let result = hasher.finalize();
-
-    // Affichez la valeur du hachage en format hexadécimal
-    println!("Hash SHA-256 generic-array hex : {:x}", result);
-    println!("Hash SHA-256 generic-array tab : {:?}", result);
-
-    let bytes: [u8; 32] = result.into();
-    println!("bytes : {:?}",bytes);
-    let scalar_result = Scalar::from_bytes_mod_order(bytes);
-    println!("Hash SHA-256 scalar tab (1ère façon): {:?}",scalar_result.to_bytes());
-    println!("L'affichage est différent : la conversion en Scalar semble modifier le contenu du tableau (histoire du modulo l, il faut mieux comprendre)\n");
-
-    //seconde facon de convertir le résultat du hash en scalar : 
-    let mut bytes2: [u8; 32] = [0; 32];
-    bytes2.copy_from_slice(&result);
-    println!("bytes2 : {:?}",bytes2);
-    let scalar_result2 = Scalar::from_bytes_mod_order(bytes2);
-    println!("Hash SHA-256 scalar tab (2nd façon): {:?}",scalar_result2.to_bytes());
-    println!("L'affichage est différent : la conversion en Scalar semble modifier le contenu du tableau (histoire du modulo l, il faut mieux comprendre)\n");
-    println!("");
-
-
-    println!("------------------------------------------------------------------------------------------\n\n");
     //fonctionne pas car {:x} pas prit en compte pour le type scalar
     //println!("Hash SHA-256 scalar hex : {:x}",scalar_result.to_bytes());
 
 
-    println!("\n\n\n\nTest signature :\n");
+    println!("\n\n--------------------------------Signature-------------------------------------------\n\n");
 
-    //private_singing_key est r
-    let private_signing_key = EphemeralSecret::random_from_rng(OsRng);
-    println!("(r) private_signing_key : {:?}",private_signing_key.to_tab());
-    let private_signing_key_scalar = private_signing_key.get_scalar(); //r
-    println!("private_signing_key_scalar = {:?}",private_signing_key_scalar.to_bytes());
 
-    println!("");
+    let (r_ephem, grand_r_publickey) = generate_ephemeral_keypair();
+    let r_edward = r_ephem.to_edwards_point();
+    let grand_r_edward = grand_r_publickey.to_edwards_point();
+    println!("R = {:?}", grand_r_edward);
 
-    //public_signing_key est R
-    let public_signing_key = PublicKey::from(&private_signing_key);
-    println!("(R) public_signing_key : {:?}",public_signing_key.as_bytes());
-    let public_signing_key_scalar = public_signing_key.get_scalar(); //R
-    println!("public_signing_key_scalar = {:?}",public_signing_key_scalar.to_bytes());
+    let g = ED25519_BASEPOINT_POINT;
+    let g_tab = g.compress().to_bytes();
 
-    println!("");
+    let (bob_sk_ephem, bob_pk_publickey) = generate_ephemeral_keypair();
+    let bob_sk_edward = bob_sk_ephem.to_edwards_point();
+    let bob_pk_edward = bob_pk_publickey.to_edwards_point();
 
-    let second_bob_sec = EphemeralSecret::random_from_rng(OsRng);
-    println!("bob_sec.to_tab() : {:?}",second_bob_sec.to_tab());
-    let second_bob_pub = PublicKey::from(&second_bob_sec);
-    println!("bob_pub.as_bytes(): {:?}", second_bob_pub.as_bytes());
-    let second_bob_pub_scalar = second_bob_pub.get_scalar();
-
-    println!("");
-
-    let public_signing_key_tab = *(public_signing_key.as_bytes());
     let alice_pub_tab = *(alice_pub.as_bytes());
     let bob_pub_tab = *(bob_pub.as_bytes());
-    let second_bob_pub_tab = *(second_bob_pub.as_bytes());
+    let bob_pk_tab = *(bob_pk_publickey.as_bytes());
+    let grand_r_tab = *(grand_r_publickey.as_bytes());
 
+    let mut result_1: [u8; 160] = [0; 160];
+    result_1[0..32].copy_from_slice(&grand_r_tab);
+    result_1[32..64].copy_from_slice(&g_tab);
+    result_1[64..96].copy_from_slice(&bob_pk_tab);
+    result_1[96..128].copy_from_slice(&alice_pub_tab);
+    result_1[128..160].copy_from_slice(&bob_pub_tab);
 
-    //g est le groupe générateur, g_coords est le groupe générateur mit dans un tableau u8; 32
-    let g = ED25519_BASEPOINT_POINT;
-    let g_coords = g.compress().to_bytes();
+    let mut hasher = Sha256::new();
+    hasher.update(&result_1);
+    let result_hash = hasher.finalize();
+    let mut hash_byte_result: [u8; 32] = [0; 32];
+    hash_byte_result.copy_from_slice(&result_hash);
+    let c = Scalar::from_bytes_mod_order(hash_byte_result);
 
-    println!("groupe générateur g = {:?}", g);
-    println!("g_cooreds : {:?}",g_coords);
+    let z_edward = r_edward + c*bob_sk_edward;
+    let z_montgom = z_edward.to_montgomery();
+    let z_bytes = z_montgom.to_bytes();
+    let z_scalar = Scalar::from_bytes_mod_order(z_bytes);
 
-    //on créé le scalar g_coords_scalar à partir du tableau g_coords
-    let g_coords_scalar = Scalar::from_bytes_mod_order(g_coords); //g
-    println!("g_coords_scalar = {:?}", g_coords_scalar.as_bytes());
+    let grand_r_prime_edward = z_scalar*g - c*bob_pk_edward;
+    println!("R' : {:?}", grand_r_prime_edward);
 
+    let grand_r_prime_montgom = grand_r_prime_edward.to_montgomery();
+    let grand_r_prime_tab = grand_r_prime_montgom.to_bytes();
 
-    println!("\n\nCalcul de H(R|g|B.pk|M(A.pk)) :\n");
+    let mut result_2: [u8; 160] = [0; 160];
+    result_2[0..32].copy_from_slice(&grand_r_prime_tab);
+    result_2[32..64].copy_from_slice(&g_tab);
+    result_2[64..96].copy_from_slice(&bob_pk_tab);
+    result_2[96..128].copy_from_slice(&alice_pub_tab);
+    result_2[128..160].copy_from_slice(&bob_pub_tab);
 
-    //calcul de tous les tableaux concaténés
-
-    //conversion en un tableau [u8; 160]
-    let mut result: [u8; 160] = [0; 160];
-    result[0..32].copy_from_slice(&public_signing_key_scalar.to_bytes());
-    result[32..64].copy_from_slice(&g_coords);
-    result[64..96].copy_from_slice(&second_bob_pub_tab);
-    result[96..128].copy_from_slice(&alice_pub_tab);
-    result[128..160].copy_from_slice(&bob_pub_tab);
-
-    println!("Concaténation des tableaux : public_signing_key_scalar.to_bytes(), g_coords, second_bob_pub_tab, M(alice_pub_tab, bob_pub_tab) \n {:?}", result);
-
-
-
-    println!("\nHashage du grand tableau avec Sha256 :");
-    let mut haser2 = Sha256::new();
-    haser2.update(&result);
-    let result_hash = haser2.finalize();
-
-    // Affichez la valeur du hachage en format hexadécimal, et en tableau
-    println!("\nHash SHA-256 result_hash hex : {:x}", result_hash);
-    println!("Hash SHA-256 result_hash tab : {:?}", result_hash);
-
+    let mut hasher2 = Sha256::new();
+    hasher2.update(&result_2);
+    let result_hash2 = hasher2.finalize();
     let mut hash2_byte_result: [u8; 32] = [0; 32];
-    hash2_byte_result.copy_from_slice(&result_hash);
-    println!("hash2_byte_result  (c non scalar = H(R|g|B.pk|M) en non scalar): {:?}",hash2_byte_result);
-    let c = Scalar::from_bytes_mod_order(hash2_byte_result);
+    hash2_byte_result.copy_from_slice(&result_hash2);
+    let c_prime = Scalar::from_bytes_mod_order(hash2_byte_result);
 
-    println!("c (scalar) = H(R|g|B.pk|M))= {:?}",c.as_bytes());
+    println!("c : {:?}", c.as_bytes());
+    println!("c' : {:?}", c_prime.as_bytes());
 
-
-    println!("\n\nCalcul de z :");
-    let z = private_signing_key_scalar + c*second_bob_pub_scalar;
-    println!("z = {:?}",z.to_bytes());
-
-    println!("\n\nTransfert de c et de z");
-
-    let big_r_prime_scalar = z*g_coords_scalar - c*second_bob_pub_scalar;
-
-    println!("--------------------------------------------------------------------------------");
-    println!("big_r_prime_scalar(R') doit être égal à public_signing_key_scalar (R) !\n");
-    println!("big_r_prime_scalar(R') : {:?}",big_r_prime_scalar.to_bytes());
-    println!("");
-    println!("public_singing_key (R)  : {:?}",public_signing_key_tab);
-    println!("public_signing_key_scalar (R) : {:?}",public_signing_key_scalar.to_bytes());
-    println!("--------------------------------------------------------------------------------\n\n");
-
-    //calcul de H(R'|g|b.pk|M)
-
-    let mut gros_tableau: [u8; 160] = [0; 160];
-
-    gros_tableau[0..32].copy_from_slice(&big_r_prime_scalar.to_bytes());
-    gros_tableau[32..64].copy_from_slice(&g_coords);
-    gros_tableau[64..96].copy_from_slice(&second_bob_pub_tab);
-    gros_tableau[96..128].copy_from_slice(&alice_pub_tab);
-    gros_tableau[128..160].copy_from_slice(&bob_pub_tab);
-
-    println!("\nConcaténation des tableau pour le second calcul de hash : {:?}", gros_tableau);
-
-    println!("\nCalcul de H(R'|g|b.pk|M)");
-
-    let mut hasher3 = Sha256::new();
-    hasher3.update(&gros_tableau);
-    let result_hash2 = hasher3.finalize();
-
-    // Affichez la valeur du hachage en format hexadécimal, et en tableau
-    println!("\nHash SHA-256 result_hash2 hex : {:x}", result_hash2);
-    println!("Hash SHA-256 result_hash2 tab : {:?}", result_hash2);
-    
-    println!("\nVérification de la signature : H(R'|g|B.pk|M) = c ? :");
-
-    println!("--------------------------------------------------------------------");
-    println!("hash2_byte_result (c en non scalar) = {:?}",hash2_byte_result);
-    println!("c (scalar) = {:?}",c.as_bytes());
-    println!("");
-
-    let hash3_byte_result: [u8; 32] = result_hash2.into();
-    println!("hash3_byte_result : {:?}",hash3_byte_result);
-    let c_prime = Scalar::from_bytes_mod_order(hash3_byte_result);
-
-    println!("c_prime : {:?}",c_prime.as_bytes());
-    println!("--------------------------------------------------------------------");
- 
-
-    println!("\n\n\n");
-
+    println!("\n\n");
 
 }
 
@@ -280,4 +177,10 @@ pub fn decrypt(cipher : &CipherType, nonce : NonceType, ciphertext : Vec<u8>) ->
         }
     };
     plaintext
+}
+
+fn generate_ephemeral_keypair() -> (EphemeralSecret, PublicKey) {
+    let secret = EphemeralSecret::random_from_rng(&mut OsRng);
+    let public: PublicKey = PublicKey::from(&secret);
+    (secret, public)
 }
