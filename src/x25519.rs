@@ -21,6 +21,16 @@ impl PublicKey {
         let public_scalar: Scalar = Scalar::from_bytes_mod_order(public_tab);
         public_scalar
     }
+
+    pub fn to_edwards_point(&self) -> EdwardsPoint {
+        let scalar = self.get_scalar();
+        let scalar_bytes = scalar.to_bytes();
+        let mut scalar_array = [0u8; 32];
+        scalar_array.copy_from_slice(&scalar_bytes);
+        
+        EdwardsPoint::mul_base_clamped(scalar_array)
+    }
+
 }
 
 impl<'a> From<&'a EphemeralSecret> for PublicKey {
@@ -74,6 +84,22 @@ impl EphemeralSecret {
         let secret_tab = self.to_tab();
         let secret_scalar: Scalar = Scalar::from_bytes_mod_order(secret_tab);
         secret_scalar
+    }
+
+    pub fn from_scalar(scalar: &Scalar) -> EphemeralSecret {
+        let scalar_bytes = scalar.to_bytes();
+        let mut secret_bytes = [0u8; 32];
+        secret_bytes.copy_from_slice(&scalar_bytes[..32]);
+        EphemeralSecret(secret_bytes)
+    }
+
+    pub fn to_edwards_point(&self) -> EdwardsPoint {
+        let scalar = self.get_scalar();
+        let scalar_bytes = scalar.to_bytes();
+        let mut scalar_array = [0u8; 32];
+        scalar_array.copy_from_slice(&scalar_bytes);
+        
+        EdwardsPoint::mul_base_clamped(scalar_array)
     }
 
 }

@@ -91,6 +91,7 @@ fn main() {
     let bob_pk_tab = *(bob_pk_publickey.as_bytes());
     let grand_r_tab = *(grand_r_publickey.as_bytes());
 
+/*/
     let mut result_1: [u8; 160] = [0; 160];
     result_1[0..32].copy_from_slice(&grand_r_tab);
     result_1[32..64].copy_from_slice(&g_tab);
@@ -98,24 +99,39 @@ fn main() {
     result_1[96..128].copy_from_slice(&alice_pub_tab);
     result_1[128..160].copy_from_slice(&bob_pub_tab);
 
+
     let mut hasher = Sha256::new();
     hasher.update(&result_1);
     let result_hash = hasher.finalize();
     let mut hash_byte_result: [u8; 32] = [0; 32];
     hash_byte_result.copy_from_slice(&result_hash);
     let c = Scalar::from_bytes_mod_order(hash_byte_result);
+    println!("c result hash : {:?}",c);
+    */
 
-    let z_edward = r_edward + c*bob_sk_edward;
+
+//---------------------------------------AJOUT DE LA FONCTION, RESULTAT LE MEME QUE SANS LA FONCTION--------------------------------------------------
+    let mut message = Vec::new();
+    message.extend_from_slice(&alice_pub_tab);
+    message.extend_from_slice(&bob_pub_tab);
+
+    let c_scalar = hash_tab_get_scalar(&grand_r_tab,&g_tab,&bob_pk_tab,&message);
+    println!("c bis result hash : {:?}",c_scalar.as_bytes());
+//---------------------------------------AJOUT DE LA FONCTION, RESULTAT LE MEME QUE SANS LA FONCTION--------------------------------------------------
+
+
+    let z_edward = r_edward + c_scalar*bob_sk_edward;
     let z_montgom = z_edward.to_montgomery();
     let z_bytes = z_montgom.to_bytes();
     let z_scalar = Scalar::from_bytes_mod_order(z_bytes);
 
-    let grand_r_prime_edward = z_scalar*g - c*bob_pk_edward;
+    let grand_r_prime_edward = z_scalar*g - c_scalar*bob_pk_edward;
     println!("R' : {:?}", grand_r_prime_edward);
 
     let grand_r_prime_montgom = grand_r_prime_edward.to_montgomery();
     let grand_r_prime_tab = grand_r_prime_montgom.to_bytes();
 
+    /*
     let mut result_2: [u8; 160] = [0; 160];
     result_2[0..32].copy_from_slice(&grand_r_prime_tab);
     result_2[32..64].copy_from_slice(&g_tab);
@@ -129,15 +145,40 @@ fn main() {
     let mut hash2_byte_result: [u8; 32] = [0; 32];
     hash2_byte_result.copy_from_slice(&result_hash2);
     let c_prime = Scalar::from_bytes_mod_order(hash2_byte_result);
+    */
 
-    println!("c : {:?}", c.as_bytes());
-    println!("c' : {:?}", c_prime.as_bytes());
+    let c_prime_scalar = hash_tab_get_scalar(&grand_r_prime_tab, &g_tab,&bob_pk_tab,&message);
+    
+    println!("c : {:?}", c_scalar.as_bytes());
+    println!("c' : {:?}", c_prime_scalar.as_bytes());
 
     println!("\n\n");
 
 }
 
+fn hash_tab_get_scalar(
+    grand_r_prime_tab: &[u8; 32],
+    g_rab: &[u8; 32],
+    bob_pk_tab: &[u8; 32],
+    other_tab: &[u8],
+) -> Scalar{
+    // Créer un vecteur pour contenir le résultat
+    let mut result: Vec<u8> = Vec::new();
 
+    // Concaténer les tableaux
+    result.extend_from_slice(grand_r_prime_tab);
+    result.extend_from_slice(g_rab);
+    result.extend_from_slice(bob_pk_tab);
+    result.extend_from_slice(other_tab);
+
+    let mut hasher = Sha256::new();
+    hasher.update(&result);
+    let result_hash = hasher.finalize();
+    let mut result_hash_tab: [u8; 32] = [0; 32];
+    result_hash_tab.copy_from_slice(&result_hash);
+    let c = Scalar::from_bytes_mod_order(result_hash_tab);
+    c
+}
 
 
 pub fn create_cipher(shared_key : &[u8]) -> CipherType{
