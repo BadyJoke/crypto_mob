@@ -1,25 +1,44 @@
-use rand_core::OsRng;
-use crypto_mob::{EphemeralSecret, PublicKey};
+use curve25519_dalek::{edwards::EdwardsPoint, scalar::Scalar, constants::ED25519_BASEPOINT_POINT};
+use rand_core::{RngCore, CryptoRng, OsRng};
 
-use log::{info, debug};
+use sha2::{Sha256, Digest};
+
+/// Generate a random scalar
+fn random_scalar<T: RngCore + CryptoRng>(mut csprng: T) -> Scalar {
+    let mut bytes = [0u8; 32];
+    csprng.fill_bytes(&mut bytes);
+    Scalar::from_bytes_mod_order(bytes)
+}
+
+/// Generate a random `EdwardPoint`
+fn random_point() -> EdwardsPoint {
+    let r_scalar = random_scalar(OsRng);
+    r_scalar * ED25519_BASEPOINT_POINT
+}
+
+fn edpoint_to_bytes(edp: EdwardsPoint) -> [u8;32] {
+    edp.to_montgomery().to_bytes()
+}
+
+fn hash(digest: Vec<EdwardsPoint>){
+    let v: Vec<[u8;32]> = digest.iter().map(|p| edpoint_to_bytes(*p)).collect();
+
+    let mut hasher = <Sha256 as Digest>::new();
+    for tab in v {
+        hasher.update(tab.as_slice());
+    }
+
+    let result = hasher.finalize();
+    println!("Binary hash: {:?}", result);
+}
 
 fn main() {
-    pretty_env_logger::init();
+    let R = random_point();
+    let g = ED25519_BASEPOINT_POINT;
 
-    info!("Starting key exchange!");
-    let alice_sec = EphemeralSecret::random_from_rng(OsRng);
-    let alice_pub = PublicKey::from(&alice_sec);
+    let b_pk = random_point();
 
-    debug!("Alice public key : {:?}", alice_pub.as_bytes());
+    let v: Vec<EdwardsPoint> = vec![R, g, b_pk];
 
-    let bob_sec = EphemeralSecret::random_from_rng(OsRng);
-    let bob_pub = PublicKey::from(&bob_sec);
-
-    debug!("Bob public key : {:?}", bob_pub.as_bytes());
-
-    let alice_shared_sec = alice_sec.diffie_hellman(&bob_pub);
-    let bob_shared_sec = bob_sec.diffie_hellman(&alice_pub);
-
-    assert_eq!(alice_shared_sec.as_byte(), bob_shared_sec.as_byte());
-    info!("Shared secret is the same : {:?}", alice_shared_sec.as_byte());
+    hash(v);
 }
