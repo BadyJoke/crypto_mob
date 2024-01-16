@@ -35,6 +35,10 @@ fn hash(digest: Vec<EdwardsPoint>) -> Scalar{
     Scalar::from_bytes_mod_order(result.into())
 }
 
+fn sign(c: Scalar, secret_key: Scalar, random: Scalar) -> Scalar {
+    random + c*secret_key
+}
+
 fn main() {
 
     let (x,X) = generate_keypair();
