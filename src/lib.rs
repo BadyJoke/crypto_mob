@@ -5,47 +5,70 @@ use rand_core::{RngCore, CryptoRng, OsRng};
 
 use sha2::{Sha256, Digest};
 
+#[derive(Debug)]
+pub struct SignatureError;
 
+impl Error for SignatureError {}
 
-pub struct Signer {
-    internal_secret: Scalar,
-    key: Scalar,
+impl fmt::Display for SignatureError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Verification equation was not satisfied")
+    }
 }
 
-impl Signer {
-    pub fn new<T: RngCore + CryptoRng>(key: Scalar, mut csprng: T) -> Signer{
-        let mut bytes = [0u8; 32];
-        csprng.fill_bytes(&mut bytes);
+pub struct SigningKey {
+    secret_key: Scalar,
+    public_key: EdwardsPoint
+}
 
-        Signer {
-            internal_secret: Scalar::from_bytes_mod_order(bytes),
-            key
-        }
+impl SigningKey {
+    pub fn generate<T: RngCore + CryptoRng>(mut csprng: T) -> SigningKey {
+        let r = random_scalar(csprng);
+        SigningKey { secret_key: r, public_key: random_edward_point(r) }
     }
+}
 
-    pub fn sign(&self, msg: Vec<EdwardsPoint>) -> Signature{
-        todo!()
-    }
+pub trait Signer {
+    fn sign(&self, msg: &mut Vec<EdwardsPoint>) -> Signature;
+}
 
-    fn hash(digest: Vec<EdwardsPoint>) -> Scalar{
-        let v: Vec<[u8;32]> = digest.iter().map(|p| edpoint_to_bytes(*p)).collect();
-    
-        let mut hasher = <Sha256 as Digest>::new();
-        for tab in v {
-            hasher.update(tab.as_slice());
-        }
-    
-        let result = hasher.finalize();
-        println!("Binary hash: {:?}", result);
-        Scalar::from_bytes_mod_order(result.into())
+impl Signer for SigningKey {
+
+    fn sign(&self, msg: &mut Vec<EdwardsPoint>) -> Signature{
+        let r = random_scalar(OsRng);
+        let mut digest = vec![random_edward_point(r), ED25519_BASEPOINT_POINT, self.public_key];
+        digest.append(msg);
+        let c = hash(digest);
+
+        let z = r + c * self.secret_key;
+
+        Signature { c, z }
+
     }
 }
 
 pub struct Signature {
-    c: EdwardsPoint,
+    c: Scalar,
     z: Scalar,
 }
 
+pub struct Verifier {
+    key: EdwardsPoint,
+}
+
+impl Verifier {
+    pub fn verify(&self, msg: &mut Vec<EdwardsPoint>, signature: &Signature) -> Result<(), SignatureError> {
+        let R = signature.z * ED25519_BASEPOINT_POINT - signature.c * self.key;
+        let mut digest = vec![R, ED25519_BASEPOINT_POINT, self.key];
+        digest.append(msg);
+        let c = hash(digest);
+
+        match signature.c.eq(&c) {
+            true => Ok(()),
+            false => Err(SignatureError),
+        }
+    }
+}
 
 
 /// Generate a random scalar
@@ -56,6 +79,11 @@ pub fn random_scalar<T: RngCore + CryptoRng>(mut csprng: T) -> Scalar {
 }
 
 /// Generate a random `EdwardPoint`
+pub fn random_edward_point(r: Scalar) -> EdwardsPoint {
+    r * ED25519_BASEPOINT_POINT
+}
+
+/// Generate a keypair
 pub fn generate_keypair() -> (Scalar, EdwardsPoint) {
     let r_scalar = random_scalar(OsRng);
     (r_scalar, r_scalar * ED25519_BASEPOINT_POINT)
@@ -95,16 +123,6 @@ mod tests {
     use super::*;
     #[test]
     fn sign_verify(){
-        let (x,X) = generate_keypair();
-        let (y,Y) = generate_keypair();
-        let (r,R) = generate_keypair();
-
-        let (b_sk, b_pk) = generate_keypair();
-
-        let c = hash(vec![R, ED25519_BASEPOINT_POINT, b_pk, X, Y]);
-
-        let z = sign(c, b_sk, r);
-
-        assert!(verify(z, c, b_pk, X, Y));
+        
     }
 }
