@@ -24,8 +24,13 @@ mod tests {
     #[allow(non_snake_case)]
     fn sign_verify(){
         let sign_key = SigningKey::generate(OsRng);
-        let (_, X) = generate_keypair();
-        let (_, Y) = generate_keypair();
+        let (x, X) = generate_keypair();
+        let (y, Y) = generate_keypair();
+
+        let shared_secret = X.mul_clamped(y.to_bytes());
+
+        println!("la clé secrète de diffie Hellman est : {:?}", shared_secret.to_montgomery().as_bytes());
+
 
         let msg = vec![X, Y];
 
