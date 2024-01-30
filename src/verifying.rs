@@ -5,7 +5,7 @@ use crate::{signature::{Signature, SignatureError}, helpers::hash};
 
 /// ed25519 key used to verify signatures
 pub struct VerifyingKey {
-    key: EdwardsPoint,
+    pub key: EdwardsPoint,
 }
 
 impl VerifyingKey {

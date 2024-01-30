@@ -7,7 +7,7 @@ use crate::signature::*;
 /// ed25519 signing key used to produce signatures 
 pub struct SigningKey {
     /// Private half of the signing key
-    secret_key: Scalar,
+    pub secret_key: Scalar,
     /// Public half of the signing key
     pub public_key: EdwardsPoint,
 }

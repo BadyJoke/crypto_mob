@@ -1,7 +1,7 @@
 use curve25519_dalek::{EdwardsPoint, MontgomeryPoint, Scalar};
 use rand_core::{CryptoRng, RngCore};
 
-pub struct SecretKey(pub(crate) [u8; 32]);
+pub struct SecretKey(pub [u8; 32]);
 
 impl SecretKey{
 
@@ -20,7 +20,7 @@ impl SecretKey{
     }
 }
 
-pub struct PublicKey(pub(crate) EdwardsPoint);
+pub struct PublicKey(pub EdwardsPoint);
 
 impl PublicKey {
     
@@ -31,7 +31,7 @@ impl PublicKey {
 }
 
 #[derive(Debug)]
-pub struct SharedSecret(pub(crate) MontgomeryPoint);
+pub struct SharedSecret(pub MontgomeryPoint);
 
 impl SharedSecret {
     pub fn as_byte(&self) -> &[u8; 32] {

@@ -15,6 +15,6 @@ impl fmt::Display for SignatureError {
 
 /// An ed25519 signature 
 pub struct Signature {
-    pub(crate) c: Scalar,
-    pub(crate) z: Scalar,
+    pub c: Scalar,
+    pub z: Scalar,
 }
