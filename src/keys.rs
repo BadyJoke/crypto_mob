@@ -1,4 +1,4 @@
-use curve25519_dalek::{EdwardsPoint, MontgomeryPoint, Scalar};
+use curve25519_dalek::{edwards::CompressedEdwardsY, EdwardsPoint, MontgomeryPoint, Scalar};
 use rand_core::{CryptoRng, RngCore};
 
 pub struct SecretKey(pub [u8; 32]);
@@ -36,6 +36,12 @@ impl PublicKey {
 
     pub fn to_tab(&self) -> [u8; 32] {
         self.0.to_montgomery().to_bytes()
+    }
+
+    pub fn from_tab(tab: [u8;32]) -> Self {
+        let compressed = CompressedEdwardsY(tab);
+        let edwards_point = compressed.decompress().expect("Invalid compressed point");
+        PublicKey(edwards_point)
     }
 }
 
