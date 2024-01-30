@@ -33,6 +33,10 @@ impl PublicKey {
         let r_edward = EdwardsPoint::mul_base_clamped(secret_key.0);
         PublicKey(r_edward)
     }
+
+    pub fn to_tab(&self) -> [u8; 32] {
+        self.0.to_montgomery().to_bytes()
+    }
 }
 
 #[derive(Debug)]
