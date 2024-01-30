@@ -12,6 +12,14 @@ pub struct SigningKey {
     pub public_key: EdwardsPoint,
 }
 
+
+// ed25519 signing key for the other kind of signature
+pub struct SigningKey2 {
+    secret_key: Scalar,
+    pub public_r1: EdwardsPoint,
+    pub public_r2: EdwardsPoint,
+}
+
 impl SigningKey {
     /// Generate an ed25519 signing key.
     ///
