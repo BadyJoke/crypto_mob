@@ -24,6 +24,7 @@ impl SecretKey{
     }
 }
 
+pub struct Test(pub(crate) [u8;32]);
 pub struct PublicKey(pub EdwardsPoint);
 
 impl PublicKey {
