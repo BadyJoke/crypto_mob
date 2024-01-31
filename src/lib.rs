@@ -29,7 +29,7 @@ mod tests {
         let (_, X) = generate_keypair();
         let (_, Y) = generate_keypair();
 
-        let msg = vec![X, Y];
+        let msg = vec![X.to_montgomery().0, Y.to_montgomery().0];
 
         let signature = sign_key.sign(&msg);
 

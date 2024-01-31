@@ -1,7 +1,7 @@
 use rand_core::{RngCore, CryptoRng, OsRng};
 
 use curve25519_dalek::{edwards::EdwardsPoint, scalar::Scalar, constants::ED25519_BASEPOINT_POINT};
-use crate::helpers::{hash, random_scalar, random_edward_point};
+use crate::helpers::{edpoint_to_bytes, hash, random_edward_point, random_scalar};
 use crate::signature::*;
 
 /// ed25519 signing key used to produce signatures 
@@ -28,15 +28,16 @@ impl SigningKey {
 /// returning a digital signature.
 pub trait Signer {
     /// Sign a message and returns a `Signature`
-    fn sign(&self, msg: &Vec<EdwardsPoint>) -> Signature;
+    fn sign(&self, msg: &Vec<[u8;32]>) -> Signature;
 }
 
 impl Signer for SigningKey {
-    fn sign(&self, msg: &Vec<EdwardsPoint>) -> Signature{
+    fn sign(&self, msg: &Vec<[u8;32]>) -> Signature{
         let r = random_scalar(OsRng);
-        let mut digest = vec![random_edward_point(r), ED25519_BASEPOINT_POINT, self.public_key];
-        digest.append(msg.clone().as_mut());
-        let c = hash(digest);
+        let digest = vec![random_edward_point(r), ED25519_BASEPOINT_POINT, self.public_key];
+        let mut v: Vec<[u8;32]> = digest.iter().map(|p| edpoint_to_bytes(*p)).collect();
+        v.append(msg.clone().as_mut());
+        let c = hash(v);
 
         let z = r + c * self.secret_key;
 
