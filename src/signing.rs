@@ -22,6 +22,10 @@ impl SigningKey {
         let r = random_scalar(csprng);
         SigningKey { secret_key: r, public_key: random_edward_point(r) }
     }
+
+    pub fn from_existing_key(existing_secret_key: Scalar, existing_public_key: EdwardsPoint) -> SigningKey{
+        SigningKey{secret_key: existing_secret_key, public_key: existing_public_key}
+    }
 }
 
 /// Sign the provided message bytestring using `Self`
