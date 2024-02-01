@@ -31,17 +31,3 @@ pub fn hash(digest: Vec<EdwardsPoint>) -> Scalar{
     Scalar::from_bytes_mod_order(result.into())
 }
 
-pub fn get_w(my_pub: &EdwardsPoint, his_pub: &EdwardsPoint, auth_pub: &EdwardsPoint) -> Vec<EdwardsPoint> {
-    let mut w = Vec::new();
-    w.push(my_pub.clone());
-    w.push(his_pub.clone());
-    w.push(auth_pub.clone());
-    w
-}
-
-pub fn get_h(auth1: &EdwardsPoint, auth2: &EdwardsPoint, auth3: &EdwardsPoint) -> EdwardsPoint {
-    let h = auth1 + auth2 + auth3;
-    return h;
-}
-
-pub fn 
