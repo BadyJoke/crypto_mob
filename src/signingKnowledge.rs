@@ -11,6 +11,14 @@ pub struct KnowledgeElements {
 }
 
 impl KnowledgeElements {
+    pub fn new(w: &Vec<EdwardsPoint>, h: EdwardsPoint, big_h: EdwardsPoint) -> Self {
+        KnowledgeElements {
+            w : w.clone(),
+            h,
+            big_h,
+        }
+    }
+
     pub fn set_w(&mut self, my_singning_pub: &EdwardsPoint, his_signing_pub: &EdwardsPoint, auths_pub: &Vec<EdwardsPoint>) {
         if auths_pub.len() == 3 {
             self.w = Vec::new();
@@ -42,6 +50,7 @@ pub trait SignOfKnowledge {
 }
 
 impl SignOfKnowledge for KnowledgeElements {
+    
     fn sign_knowledge(&self, his_message_pub: EdwardsPoint, my_message_pub: EdwardsPoint, my_message_priv: &Scalar) -> Signature{
         let r = random_scalar(OsRng);
         let r1 = random_edward_point(r);

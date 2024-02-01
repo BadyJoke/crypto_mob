@@ -10,6 +10,13 @@ pub struct VerifyingKnowledge {
 }
 
 impl VerifyingKnowledge {
+    pub fn new(w: &Vec<EdwardsPoint>, h: EdwardsPoint, big_h: EdwardsPoint) -> Self {
+        VerifyingKnowledge {
+            w: w.clone(),
+            h,
+            big_h,
+        }
+    }
     /// Verify a message 
     pub fn verify_knowledge(&self, signature: &Signature, his_message_pub : EdwardsPoint, my_message_pub : EdwardsPoint) -> Result<(), SignatureError> {
         let r1 = signature.z * ED25519_BASEPOINT_POINT - signature.c * my_message_pub;
