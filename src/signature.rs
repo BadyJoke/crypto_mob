@@ -23,4 +23,11 @@ impl Signature{
     pub fn from_existing_c_z(existing_c: Scalar, existing_z: Scalar) -> Signature{
         Signature{c: existing_c, z: existing_z}
     }
+
+    pub fn from_c_z_bytes(c: [u8;32], z: [u8;32]) -> Signature{
+        Signature {
+            c: Scalar::from_bytes_mod_order(c),
+            z: Scalar::from_bytes_mod_order(z),
+        }
+    }
 }

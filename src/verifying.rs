@@ -1,4 +1,4 @@
-use curve25519_dalek::{edwards::EdwardsPoint, constants::ED25519_BASEPOINT_POINT};
+use curve25519_dalek::{edwards::EdwardsPoint, constants::ED25519_BASEPOINT_POINT, MontgomeryPoint};
 
 use crate::{signature::{Signature, SignatureError}, helpers::{edpoint_to_bytes, hash}};
 
@@ -27,5 +27,13 @@ impl VerifyingKey {
 impl From<EdwardsPoint> for VerifyingKey {
     fn from(value: EdwardsPoint) -> Self {
         VerifyingKey { key: value }
+    }
+}
+
+impl From<[u8;32]> for VerifyingKey {
+    fn from(value: [u8; 32]) -> Self {
+        VerifyingKey {
+            key: MontgomeryPoint(value).to_edwards(1).unwrap(),
+        }
     }
 }
