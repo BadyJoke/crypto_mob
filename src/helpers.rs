@@ -18,11 +18,10 @@ pub fn edpoint_to_bytes(edp: EdwardsPoint) -> [u8;32] {
     edp.to_montgomery().to_bytes()
 }
 
-pub fn hash(digest: Vec<EdwardsPoint>) -> Scalar{
-    let v: Vec<[u8;32]> = digest.iter().map(|p| edpoint_to_bytes(*p)).collect();
+pub fn hash(digest: Vec<[u8;32]>) -> Scalar{
 
     let mut hasher = <Sha256 as Digest>::new();
-    for tab in v {
+    for tab in digest {
         hasher.update(tab.as_slice());
     }
 

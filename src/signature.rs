@@ -18,3 +18,9 @@ pub struct Signature {
     pub c: Scalar,
     pub z: Scalar,
 }
+
+impl Signature{
+    pub fn from_existing_c_z(existing_c: Scalar, existing_z: Scalar) -> Signature{
+        Signature{c: existing_c, z: existing_z}
+    }
+}
