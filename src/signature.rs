@@ -27,7 +27,7 @@ impl Signature{
     pub fn from_c_z_bytes(c: [u8;32], z: [u8;32]) -> Signature{
         Signature {
             c: Scalar::from_canonical_bytes(c).unwrap(),
-            z: Scalar::from_canonical_bytes(c).unwrap(),
+            z: Scalar::from_canonical_bytes(z).unwrap(),
         }
     }
 }
