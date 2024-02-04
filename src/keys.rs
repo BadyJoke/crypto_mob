@@ -39,9 +39,9 @@ impl PublicKey {
     }
 
     pub fn from_tab(tab: [u8;32]) -> Self {
-        let compressed = CompressedEdwardsY(tab);
-        let edwards_point = compressed.decompress().expect("Invalid compressed point");
-        PublicKey(edwards_point)
+        let compressed = MontgomeryPoint(tab).to_edwards(0).unwrap();
+        
+        PublicKey(compressed)
     }
 }
 
