@@ -27,5 +27,5 @@ pub fn hash(digest: Vec<[u8;32]>) -> Scalar{
 
     let result = hasher.finalize();
     println!("Binary hash: {:?}", result);
-    Scalar::from_canonical_bytes(result.into()).unwrap()
+    Scalar::from_bytes_mod_order(result.into())
 }

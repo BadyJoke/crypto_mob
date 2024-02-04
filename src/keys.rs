@@ -16,7 +16,7 @@ impl SecretKey{
     }
 
     pub fn to_scalar(&self) -> Scalar{
-        Scalar::from_canonical_bytes(self.0).unwrap()
+        Scalar::from_bytes_mod_order(self.0)
     }
 
     pub fn from_tab(tab: [u8;32]) -> Self {
